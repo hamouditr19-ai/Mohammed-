@@ -841,45 +841,43 @@ function setMockUser() {
     document.getElementById('user-tg-id').innerText = "جاري جلب الـ ID...";
 }
 async function fetchProductsFromAPI() {
-    // الرابط الأساسي + المسار الخاص بالمنتجات (تأكد من الوثائق إذا كان المسار هو /products أو شيء آخر)
-    const apiEndpoint = "https://store.ahminix.com/client/api/products"; 
-    
-    // مفتاحك السري
-    const myToken = "KYQNQBMUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX"; 
-
     const container = document.getElementById('products-api-target');
-    
+    const apiEndpoint = "https://api.tartousi-store1.com/client/api/products"; 
+    const myToken = "KYQNQBmUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX"; 
+
     try {
         const response = await fetch(apiEndpoint, {
             method: 'GET',
             headers: {
-                'api-token': myToken, // هذا هو التعديل المطلوب حسب الوثائق
+                // بعض السيرفرات تتوقع اسم الترويسة هكذا:
+                'Authorization': 'Bearer ' + myToken, 
+                // أو هكذا (بما أن السيرفر طلب توكن، سنضيف كلا الاحتمالين):
+                'api-token': myToken,
                 'Content-Type': 'application/json'
             }
         });
 
-        if (!response.ok) throw new Error('فشل في الاتصال بالسيرفر: ' + response.status);
-        
         const data = await response.json();
         
+        // إذا نجح الاتصال
         container.innerHTML = '<div class="products-grid"></div>';
         const grid = container.querySelector('.products-grid');
-
+        
         data.forEach(product => {
             grid.innerHTML += `
                 <div class="product-card">
-                    <div class="product-icon"><i class="fa-solid fa-gamepad"></i></div>
                     <div class="product-title">${product.name}</div>
                     <div class="product-price">${product.price} $</div>
-                    <button class="btn-gradient" onclick="handlePurchase('${product.name}', ${product.price})">شراء</button>
+                    <button class="btn-gradient" onclick="alert('شراء ${product.name}')">شراء</button>
                 </div>
             `;
         });
     } catch (error) {
-        console.error("خطأ في الربط:", error);
-        container.innerHTML = '<div class="api-loader">حدث خطأ في تحميل البيانات.</div>';
+        console.error("الخطأ:", error);
+        container.innerHTML = '<div class="api-loader">حدث خطأ في تحميل المنتجات</div>';
     }
 }
+
 
     </script>
 </body>
