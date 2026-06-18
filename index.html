@@ -2,60 +2,45 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>متجر Hamoudi Story</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-gradient: linear-gradient(145deg, #050811 0%, #0d1322 100%); --primary-accent: #3ae4ff; }
-        body { background: var(--bg-gradient); color: white; font-family: sans-serif; margin: 0; padding: 20px; min-height: 100vh; }
-        .product-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
-        .btn-gradient { background: var(--primary-accent); border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        .api-loader { text-align: center; padding: 40px; color: var(--primary-accent); }
+        body { background: #050811; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
+        .product-card { background: #151e33; padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid #3ae4ff; }
+        .btn { background: #3ae4ff; color: #000; padding: 12px; border-radius: 10px; border: none; font-weight: bold; width: 100%; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h2>منتجات Hamoudi Story</h2>
-    <div id="products-api-target">
-        <div class="api-loader"><i class="fa-solid fa-spinner fa-spin"></i> جاري الاتصال بالسيرفر...</div>
-    </div>
+    <h1>منتجات المتجر</h1>
+    <div id="shop">جاري تحميل المنتجات...</div>
 
     <script>
-        // دالة جلب المنتجات مع وسيط لتجاوز القيود
-        async function fetchProductsFromAPI() {
-            const container = document.getElementById('products-api-target');
-            const targetUrl = "https://store.ahminix.com/client/api/products";
-            const myToken = "KYQNQBmUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX";
+        async function getProducts() {
+            const container = document.getElementById('shop');
+            // استخدمت رابط وسيط آخر أكثر استقراراً
+            const url = "https://api.codetabs.com/v1/proxy?quest=https://store.ahminix.com/client/api/products";
             
-            // نستخدم وسيط لتجاوز مشاكل الحظر الجغرافي وقيود المتصفح
-            const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(targetUrl);
-
             try {
-                const response = await fetch(proxyUrl, {
-                    headers: { 'api-token': myToken }
+                const response = await fetch(url, {
+                    headers: { 'api-token': 'KYQNQBmUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX' }
                 });
-
-                const data = await response.json();
-                const products = JSON.parse(data.contents);
-
-                container.innerHTML = '';
+                const products = await response.json();
+                
+                container.innerHTML = "";
                 products.forEach(p => {
                     container.innerHTML += `
                         <div class="product-card">
                             <h3>${p.name}</h3>
                             <p>السعر: ${p.price} $</p>
-                            <button class="btn-gradient" onclick="alert('شراء ${p.name}')">شراء</button>
+                            <button class="btn" onclick="alert('شراء ${p.name}')">شراء</button>
                         </div>
                     `;
                 });
-            } catch (error) {
-                container.innerHTML = '<div class="api-loader" style="color:red;">خطأ: تأكد من تفعيل الـ VPN وتجربة الرابط من متصفح كروم.</div>';
+            } catch (e) {
+                container.innerHTML = "حدث خطأ. تأكد من اتصال الإنترنت وحاول تحديث الصفحة.";
             }
         }
-
-        // تشغيل عند التحميل
-        document.addEventListener("DOMContentLoaded", fetchProductsFromAPI);
+        getProducts();
     </script>
 </body>
 </html>
