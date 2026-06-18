@@ -3,522 +3,818 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>حمودي ستوري - Hamoudi Story</title>
+    <title>متجر شحن المحفظة الذكي</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <style>
-        /* إعدادات الخطوط والألوان الأساسية (Dark Theme) */
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: rgba(20, 27, 45, 0.7);
-            --neon-blue: #00e5ff;
+            /* خلفية غامقة نيونية انسيابية وعميقة جداً */
+            --bg-gradient: linear-gradient(145deg, #050811 0%, #0d1322 50%, #151e33 100%);
+            
+            /* كروت فائقة الشفافية لتعمل على كل المتصفحات وتطبيق Acode وتليجرام */
+            --card-bg: rgba(255, 255, 255, 0.04);
+            
+            /* حواف بيضاء ناعمة تعطي انعكاس كريستال */
+            --card-border: rgba(255, 255, 255, 0.1);
+            
+            /* ألوان النيون الأزرق السماوي المضيء */
+            --primary-accent: linear-gradient(90deg, #3ae4ff, #687aff);
             --text-main: #ffffff;
-            --text-muted: #8a99ad;
-            --border-color: rgba(0, 229, 255, 0.15);
-            --red-color: #ff3344;
+            --text-muted: #8fa0bc;
+            
+            --success-color: #00f5a0;
+            --success-bg: rgba(0, 245, 160, 0.05);
+            --success-border: rgba(0, 245, 160, 0.15);
+            --danger-color: #ff5252;
+            --danger-bg: rgba(255, 82, 82, 0.05);
+            --danger-border: rgba(255, 82, 82, 0.15);
+            --warning-color: #ffca28;
+            --warning-bg: rgba(255, 202, 40, 0.04);
+            --warning-border: rgba(255, 202, 40, 0.12);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-color);
+            background: var(--bg-gradient);
+            background-attachment: fixed; /* لتثبيت الخلفية والحصول على تأثير تحريك زجاجي عند التمرير */
             color: var(--text-main);
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
             min-height: 100vh;
-            padding-bottom: 80px; /* مساحة للفوتر السفلي */
-        }
-
-        /* الهيدر العلوي */
-        header {
-            background: linear-gradient(180deg, rgba(0, 229, 255, 0.1) 0%, rgba(11, 15, 25, 0) 100%);
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        header h1 {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--text-main);
-            text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
-            letter-spacing: 0.5px;
-        }
-
-        /* قسم حساب المستخدم والمحفظة */
-        .profile-wallet-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            margin: 15px;
-            padding: 15px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-info {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            overflow-x: hidden;
         }
 
-        .user-id-label {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .user-id-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--neon-blue);
-        }
-
-        .wallet-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 8px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .balance-container {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .balance-label {
-            font-size: 10px;
-            color: var(--text-muted);
-        }
-
-        .balance-value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #22c55e; /* لون أخضر مالي */
-        }
-
-        .charge-btn {
-            background: linear-gradient(135deg, var(--neon-blue) 0%, #00a8cc 100%);
-            color: #000;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: transform 0.1s ease;
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
-        }
-
-        .charge-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* قسم البنرات الإعلانية (Slider) */
-        .slider-container {
-            margin: 5px 15px 15px 15px;
-            overflow: hidden;
-            border-radius: 16px;
-            position: relative;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            height: 140px;
-        }
-
-        .slider-wrapper {
-            display: flex;
-            width: 400%;
-            height: 100%;
-            transition: transform 0.5s ease-in-out;
-        }
-
-        .slide {
-            width: 25%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-
-        /* تراكب داكن لتوضيح النصوص فوق البنرات */
-        .slide::before {
-            content: '';
-            position: absolute;
-            top:0; left:0; right:0; bottom:0;
-            background: linear-gradient(90deg, rgba(11,15,25,0.9) 0%, rgba(11,15,25,0.5) 100%);
-            z-index: 1;
-        }
-
-        .slide-content {
-            position: relative;
-            z-index: 2;
-            color: var(--text-main);
-        }
-
-        .slide-content h3 {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            color: var(--neon-blue);
-        }
-
-        .slide-content p {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        /* خلفيات مجهزة للبنرات الأربعة لعروض 2026 */
-        .slide:nth-child(1) { background-color: #1e1b4b; }
-        .slide:nth-child(2) { background-color: #111827; }
-        .slide:nth-child(3) { background-color: #06283d; }
-        .slide:nth-child(4) { background-color: #0f172a; }
-
-        /* حاوية المنتجات الديناميكية (فارغة ومجهزة للـ API) */
-        .dynamic-content-area {
-            flex: 1;
-            padding: 0 15px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 14px;
-            min-height: 150px;
-        }
-
-        .dynamic-content-area i {
-            font-size: 32px;
-            margin-bottom: 10px;
-            color: rgba(0, 229, 255, 0.2);
-        }
-
-        /* النافذة المنبثقة لشحن شام كاش (Modal) */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(5, 7, 12, 0.85);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 999;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end; /* تفتح من الأسفل بشكل مريح للهواتف */
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-content {
-            background: #111622;
+        .container {
             width: 100%;
-            max-width: 500px;
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            border-top: 2px solid var(--neon-blue);
-            padding: 20px;
-            transform: translateY(100%);
-            transition: transform 0.3s ease-out;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 550px;
+            margin: 0 auto;
+            padding: 16px;
+            flex: 1;
+            padding-bottom: 30px;
         }
 
-        .modal-overlay.active .modal-content {
+        .page {
+            display: none;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .page.active {
+            display: block;
+            opacity: 1;
             transform: translateY(0);
         }
 
-        .modal-header {
-            text-align: center;
-            margin-bottom: 15px;
+        /* تنسيق كروت الـ Glassmorphism الموحدة */
+        .user-header-card, .product-card, .premium-card, .method-card {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--card-border) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(25px) saturate(200%) !important;
+            -webkit-backdrop-filter: blur(25px) saturate(200%) !important;
+            border-radius: 16px;
         }
 
-        .modal-header h2 {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-
-        .exchange-rate-box {
-            background: rgba(0, 229, 255, 0.05);
-            border: 1px dashed var(--neon-blue);
-            padding: 10px;
-            border-radius: 12px;
-            text-align: center;
-            font-size: 13px;
-            margin-bottom: 15px;
-            color: #e0e0e0;
-        }
-
-        /* الصور التوضيحية والباركود */
-        .modal-images-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .img-placeholder-box {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            height: 110px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .img-placeholder-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            position: absolute;
-        }
-
-        .img-placeholder-box span {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-align: center;
-            padding: 5px;
-            z-index: 0;
-        }
-
-        /* حقل رقم الحساب والنسخ */
-        .account-number-box {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 10px 12px;
+        /* تعديل كرت الهيدر العلوي */
+        .user-header-card {
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
         }
 
-        .account-details {
+        .user-meta {
             display: flex;
             flex-direction: column;
+            gap: 2px;
         }
 
-        .account-label {
-            font-size: 11px;
+        .user-id {
             color: var(--text-muted);
+            font-size: 0.8rem;
         }
 
-        .account-id {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: 1px;
-        }
-
-        .copy-btn {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--neon-blue);
-            border: none;
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.2s;
-        }
-
-        .copy-btn:active {
-            background: rgba(0, 229, 255, 0.2);
-        }
-
-        /* زر الإغلاق */
-        .close-modal-btn {
-            width: 100%;
-            background: var(--red-color);
-            color: #ffffff;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 51, 68, 0.2);
-            transition: transform 0.1s;
-        }
-
-        .close-modal-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* الفوتر السفلي الثابت */
-        footer {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: rgba(11, 15, 25, 0.9);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 10px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            z-index: 900;
-        }
-
-        .footer-support-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--neon-blue);
-            text-decoration: none;
-            font-size: 13px;
+        .user-id span {
+            color: #3ae4ff;
             font-weight: 600;
-            background: rgba(0, 229, 255, 0.05);
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
         }
 
-        .copyright-text {
-            font-size: 10px;
-            color: var(--text-muted);
+        .balance-action-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
+
+        .balance-badge {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            padding: 8px 14px;
+            border-radius: 12px;
+            color: var(--success-color);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .deposit-trigger-btn {
+            background: var(--primary-accent);
+            border: none;
+            color: #060913;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(58, 228, 255, 0.25);
+            transition: transform 0.2s;
+        }
+        .deposit-trigger-btn:active { transform: scale(0.92); }
+
+        .back-nav-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            color: #3ae4ff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            width: fit-content;
+            padding: 6px 12px;
+            background: rgba(58, 228, 255, 0.08);
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        .back-nav-bar:active { transform: translateX(4px); }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        /* كروت المنتجات */
+        .product-card {
+            padding: 14px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            animation: fadeInCard 0.4s ease forwards;
+        }
+
+        @keyframes fadeInCard { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+        .product-icon { font-size: 2.2rem; color: #3ae4ff; margin-bottom: 8px; }
+        .product-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+        .product-price { font-size: 1rem; color: var(--success-color); font-weight: bold; margin-bottom: 10px; }
+
+        /* الكروت الكبيرة الفخمة */
+        .premium-card {
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        /* كروت اختيار وسيلة الشحن */
+        .methods-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .method-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .method-card:active { transform: scale(0.98); }
+        .method-info { display: flex; align-items: center; gap: 14px; }
+        .method-icon { width: 42px; height: 42px; background: rgba(58, 228, 255, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #3ae4ff; font-size: 1.3rem; }
+        .method-name { font-size: 0.95rem; font-weight: 600; }
+        .method-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+        /* تنسيق الحاوية الرئيسية للبنر المتحرك */
+        .banner-carousel-wrapper {
+            position: relative;
+            padding: 0 !important;
+            overflow: hidden;
+            height: 160px;
+            margin-bottom: 16px;
+        }
+
+        .banner-slides-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .banner-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+            z-index: 1;
+        }
+
+        .banner-slide.active {
+            opacity: 1;
+            z-index: 2;
+        }
+
+        .banner-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .banner-overlay-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(transparent, rgba(6, 9, 19, 0.85));
+            color: #ffffff;
+            padding: 12px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: right;
+            z-index: 3;
+        }
+
+        .banner-dots {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 4;
+        }
+
+        .banner-dots .dot {
+            width: 7px;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .banner-dots .dot.active {
+            background: #3ae4ff;
+            width: 18px;
+            border-radius: 4px;
+        }
+
+        .card-title { font-size: 1rem; margin-bottom: 14px; font-weight: 600; text-align: center; }
+        
+        .qr-wrapper {
+            display: block;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .qr-wrapper img { background: #fff; padding: 10px; border-radius: 16px; width: 140px; height: 140px; }
+
+        .wallet-address-box {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 0.8rem;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .alerts-section {
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 14px;
+            padding: 12px;
+            text-align: right;
+            margin-top: 15px;
+        }
+        .alerts-header { font-size: 0.85rem; color: var(--warning-color); font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .alert-item { font-size: 0.8rem; color: #e2e8f0; margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.4; }
+        .alert-item i { color: var(--danger-color); margin-top: 3px; font-size: 0.75rem; }
+
+        .form-group { text-align: right; margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+
+        .custom-select, .custom-input {
+            width: 100%; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px; border-radius: 12px; color: var(--text-main); font-size: 0.9rem; outline: none; text-align: right;
+        }
+        .custom-select:focus, .custom-input:focus { border-color: #3ae4ff; }
+
+        .exchange-box { background: var(--success-bg); border: 1px solid var(--success-border); border-radius: 12px; padding: 12px; text-align: center; margin-bottom: 8px; }
+        .exchange-title { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+        .exchange-amount { font-size: 1.2rem; color: var(--success-color); font-weight: 700; }
+        
+        .exchange-rate-badge { background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.06); padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; color: var(--text-muted); display: inline-block; margin-top: 6px; text-align: center; width: 100%; }
+
+        .dynamic-tx-group { display: none; margin-top: 6px; }
+        .error-message-box { background: var(--danger-bg); border: 1px solid var(--danger-border); color: var(--danger-color); border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .info-link { color: #818cf8; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; margin-top: 4px; }
+
+        .btn-gradient {
+            background: var(--primary-accent); border: none; color: #060913; font-weight: 600;
+            padding: 12px 20px; width: 100%; border-radius: 12px; font-size: 0.9rem; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(104, 122, 255, 0.2); transition: all 0.2s;
+        }
+        .btn-gradient:active { transform: scale(0.98); }
+
+        .api-loader { text-align: center; padding: 30px 0; color: var(--text-muted); font-size: 0.9rem; }
+        .api-loader i { animation: spin 1s linear infinite; margin-bottom: 8px; font-size: 1.5rem; color: #3ae4ff; display: block; }
+
+        /* فوتر مدمج زجاجي شفاف */
+        footer {
+            background: rgba(6, 9, 19, 0.4);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 12px 10px;
+            text-align: center;
+            margin-top: auto;
+            width: 100%;
+        }
+
+        .footer-buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr 1fr;
+            gap: 8px;
+            max-width: 440px;
+            margin: 0 auto 12px auto;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            padding: 8px 4px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn i { font-size: 0.95rem; }
+        .nav-btn.active { background: var(--primary-accent); color: #060913; border-color: transparent; }
+
+        .social-icons { display: flex; justify-content: center; gap: 16px; margin-bottom: 10px; }
+        .social-icons a { color: var(--text-muted); font-size: 1.1rem; transition: color 0.2s; text-decoration: none; }
+        .social-icons a:hover { color: #3ae4ff; }
+        
+        .copyright { font-size: 0.7rem; color: rgba(148, 163, 184, 0.25); }
+        
+        .toast-box {
+            position: fixed; bottom: 30px; left: 50%; transform: translate(-50%, 20px);
+            background: rgba(17, 23, 38, 0.8); border: 1px solid var(--success-color); color: var(--text-main);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 10px 20px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4); opacity: 0; z-index: 9999; pointer-events: none; transition: all 0.25s ease;
+        }
+        .toast-box.show { opacity: 1; transform: translate(-50%, 0); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(6, 9, 19, 0.75);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; z-index: 1000; transition: opacity 0.25s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .custom-modal { background: #111726; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 24px; width: 90%; max-width: 380px; text-align: center; }
+        .modal-img-placeholder { width: 100%; height: 120px; background: rgba(255,255,255,0.03); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px dashed rgba(255, 255, 255, 0.08); color: var(--text-muted); }
+
+        .spinner { display: none; width: 14px; height: 14px; border: 2px solid #060913; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>حمودي ستوري</h1>
-    </header>
-
-    <section class="profile-wallet-card">
-        <div class="user-info">
-            <span class="user-id-label">معرف تليجرام</span>
-            <span class="user-id-value" id="telegram-id">جاري الجلب...</span>
-        </div>
-        <div class="wallet-info">
-            <div class="balance-container">
-                <span class="balance-label">الرصيد الحالي</span>
-                <span class="balance-value" id="user-balance">$0.00</span>
+    <div class="container">
+        
+        <div class="user-header-card">
+            <div class="user-meta">
+                <div style="font-weight: 600; font-size: 0.9rem;" id="user-display-name">جاري التحميل...</div>
+                <div class="user-id">ID: <span id="user-tg-id">000000000</span></div>
             </div>
-            <button class="charge-btn" id="open-charge-modal">
-                <i class="fa-solid fa-wallet"></i>
-                شحن
-            </button>
-        </div>
-    </section>
-
-    <section class="slider-container">
-        <div class="slider-wrapper" id="slider-wrapper">
-            <div class="slide">
-                <div class="slide-content">
-                    <h3>عروض حصرية 2026</h3>
-                    <p>استمتع بأقوى الخصومات على شحن الألعاب الآن</p>
-                </div>
-            </div>
-            <div class="slide">
-                <div class="slide-content">
-                    <h3>خدمات السوشيال ميديا</h3>
-                    <p>دعم وتطوير حساباتك بأسعار تنافسية وجودة عالية</p>
-                </div>
-            </div>
-            <div class="slide">
-                <div class="slide-content">
-                    <h3>سرعة وفوريّة في التنفيذ</h3>
-                    <p>شحن آلي ومباشر بالكامل دون انتظار</p>
-                </div>
-            </div>
-            <div class="slide">
-                <div class="slide-content">
-                    <h3>دعم فني متواصل</h3>
-                    <p>فريقنا متواجد لخدمتكم وحل استفساراتكم على مدار الساعة</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <main class="dynamic-content-area" id="products-container">
-        <i class="fa-solid fa-boxes-radial"></i>
-        <p>يتم الآن جلب الأقسام والخدمات ديناميكياً عبر الـ API...</p>
-    </main>
-
-    <div class="modal-overlay" id="charge-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>بوابة شحن الرصيد (شام كاش)</h2>
-            </div>
-
-            <div class="exchange-rate-box">
-                <i class="fa-solid fa-circle-info"></i> 
-                سعر الصرف المعتمد حالياً: <strong>1$ = 15,000 ل.س</strong> عبر شام كاش.
-            </div>
-
-            <div class="modal-images-container">
-                <div class="img-placeholder-box">
-                    <img src="" id="promo-image" alt="">
-                    <span>[صورة توضيحية للخطوات]</span>
-                </div>
-                <div class="img-placeholder-box">
-                    <img src="" id="qr-code-image" alt="">
-                    <span>[صورة باركود QR Code]</span>
-                </div>
-            </div>
-
-            <div class="account-number-box">
-                <div class="account-details">
-                    <span class="account-label">رقم حساب استقبال شام كاش</span>
-                    <span class="account-id" id="account-number">1234567</span>
-                </div>
-                <button class="copy-btn" id="copy-account-btn" title="نسخ الرقم">
-                    <i class="fa-regular fa-copy"></i>
+            <div class="balance-action-wrapper">
+                <div class="balance-badge"><span id="user-current-balance">0.00</span> $</div>
+                <button class="deposit-trigger-btn" onclick="switchPage('select-method')" title="شحن المحفظة">
+                    <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
-
-            <button class="close-modal-btn" id="close-charge-modal">إغلاق النافذة والعودة</button>
         </div>
+
+        <div id="page-home" class="page active">
+            
+            <div class="premium-card banner-carousel-wrapper">
+                <div class="banner-slides-container" id="bannerSlider">
+                    <div class="banner-slide active">
+                        <img src="https://images.unsplash.com/photo-1612287230202-1bf1d85d1bdf?w=500&q=80" alt="عرض الألعاب">
+                        <div class="banner-overlay-text">شحن فوري لجميع الألعاب النيون ⚡</div>
+                    </div>
+                    <div class="banner-slide">
+                        <img src="https://images.unsplash.com/photo-1627856013091-fed6e4e30025?w=500&q=80" alt="عرض شدات وبطاقات">
+                        <div class="banner-overlay-text">خصومات تصل إلى 20% this week 🎉</div>
+                    </div>
+                    <div class="banner-slide">
+                        <img src="https://images.unsplash.com/photo-1563013544-824ae1d704d3?w=500&q=80" alt="شحن محفظة">
+                        <div class="banner-overlay-text">اشحن محفظتك الآن عبر الشام كاش بأمان 💳</div>
+                    </div>
+                </div>
+                <div class="banner-dots" id="bannerDots">
+                    <span class="dot active" onclick="currentSlide(0)"></span>
+                    <span class="dot" onclick="currentSlide(1)"></span>
+                    <span class="dot" onclick="currentSlide(2)"></span>
+                </div>
+            </div>
+
+            <div id="products-api-target">
+                <div class="api-loader">
+                    <i class="fa-solid fa-circle-notch"></i>
+                    جاري تحميل المنتجات المتوفرة من السيرفر...
+                </div>
+            </div>
+        </div>
+
+        <div id="page-select-method" class="page">
+            <div class="back-nav-bar" onclick="switchPage('home')">
+                <i class="fa-solid fa-arrow-right"></i> العودة للرئيسية
+            </div>
+            <div class="premium-card">
+                <div class="card-title"><i class="fa-solid fa-wallet"></i> اختر وسيلة شحن رصيدك</div>
+                
+                <div class="methods-list">
+                    <div class="method-card" onclick="switchPage('wallet')">
+                        <div class="method-info">
+                            <div class="method-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                            <div>
+                                <div class="method-name">شام كاش (Sham Cash)</div>
+                                <div class="method-hint">شحن تلقائي عبر إرسال رقم العملية</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-left" style="color: var(--text-muted); font-size: 0.8rem;"></i>
+                    </div>
+
+                    </div>
+            </div>
+        </div>
+
+        <div id="page-deposit" class="page">
+            <div class="back-nav-bar" onclick="switchPage('home')">
+                <i class="fa-solid fa-arrow-right"></i> العودة للرئيسية
+            </div>
+            <div class="premium-card">
+                <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> سجل عمليات شحن المحفظة</div>
+                <div id="deposit-history-target" style="font-size: 0.85rem; color: var(--text-muted); padding: 10px 0; text-align: center;">لا يوجد عمليات شحن سابقة حتى الآن.</div>
+            </div>
+        </div>
+
+        <div id="page-orders" class="page">
+            <div class="back-nav-bar" onclick="switchPage('home')">
+                <i class="fa-solid fa-arrow-right"></i> العودة للرئيسية
+            </div>
+            <div class="premium-card">
+                <div class="card-title"><i class="fa-solid fa-box-open"></i> سجل طلبات المنتجات</div>
+                <div id="orders-history-target" style="font-size: 0.85rem; color: var(--text-muted); padding: 10px 0; text-align: center;">لا توجد طلبات سابقة في حسابك.</div>
+            </div>
+        </div>
+
+        <div id="page-wallet" class="page">
+            <div class="back-nav-bar" onclick="switchPage('select-method')">
+                <i class="fa-solid fa-arrow-right"></i> العودة لوسائل الشحن
+            </div>
+
+            <div class="premium-card">
+                <div class="card-title">إرسال التحويل عبر الشام كاش</div>
+                <div class="qr-wrapper">
+                    <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=7ee806564d3aa36d87667cad636b6788" alt="QR Code">
+                </div>
+                
+                <div class="wallet-address-box" onclick="copyWalletText()">
+                    <span id="walletText">7ee806564d3aa36d87667cad636b6788</span>
+                    <i class="fa-regular fa-copy" style="color: #3ae4ff;"></i>
+                </div>
+
+                <div class="alerts-section">
+                    <div class="alerts-header"><i class="fa-solid fa-triangle-exclamation"></i> تنبيهات هامة</div>
+                    <div class="alert-item"><i class="fa-solid fa-circle-minus"></i><span>الرجاء عدم استخدام خيار إخفاء الهوية عند التحويل.</span></div>
+                    <div class="alert-item"><i class="fa-solid fa-circle-minus"></i><span>الرجاء عدم كتابة أي ملاحظة عند إرسال المبلغ.</span></div>
+                </div>
+            </div>
+
+            <div class="premium-card">
+                <div class="card-title">تأكيد بيانات عملية التحويل</div>
+                <div class="form-group">
+                    <label>العملة المحول بها</label>
+                    <select class="custom-select" id="currencySelect" onchange="toggleCurrencyView()">
+                        <option value="USD" selected>دولار أمريكي (USD)</option>
+                        <option value="SYP">ليرة سورية (SYP)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>المبلغ المرسل</label>
+                    <input type="number" class="custom-input" id="amountInput" placeholder="أدخل القيمة" oninput="calculateExchange()">
+                </div>
+
+                <div id="exchangeWrapper" style="display: none;">
+                    <div class="exchange-box">
+                        <div class="exchange-title">سيُضاف إلى رصيدك (بالدولار)</div>
+                        <div class="exchange-amount" id="convertedAmount">0.00 USD</div>
+                    </div>
+                    <div class="exchange-rate-badge">سعر الصرف: 1 دولار = 143.75 ل.س</div>
+                </div>
+
+                <div class="form-group">
+                    <label>رقم العملية (من إيصال التحويل)</label>
+                    <input type="number" inputmode="numeric" pattern="[0-9]*" class="custom-input" id="txIdInput" placeholder="أدخل رقم العملية" oninput="validateTxId(this)">
+                    
+                    <div class="dynamic-tx-group" id="dynamicTxGroup">
+                        <div class="error-message-box"><i class="fa-solid fa-circle-exclamation"></i> رقم العملية يجب أن يكون من 7 إلى 10 أرقام فقط</div>
+                        <div style="text-align: right;">
+                            <span class="info-link" onclick="openModal()"><i class="fa-regular fa-circle-question"></i> أين أجد رقم عملية الدفع؟</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-gradient" id="submitBtn" onclick="processPayment()">
+                    <span class="btn-text">تأكيد عملية الدفع</span>
+                    <span class="spinner" id="btnSpinner"></span>
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <footer>
-        <a href="https://t.me/YourSupportUsername" class="footer-support-btn" target="_blank">
-            <i class="fa-brands fa-telegram"></i>
-            التواصل مع الدعم الفني
-        </a>
-        <span class="copyright-text">جميع الحقوق محفوظة © حمودي ستوري 2026</span>
+        <div class="footer-buttons-grid">
+            <button class="nav-btn" id="btn-nav-deposit" onclick="switchPage('deposit')">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>سجل الشحن</span>
+            </button>
+            <button class="nav-btn active" id="btn-nav-home" onclick="switchPage('home')">
+                <i class="fa-solid fa-house"></i>
+                <span>الرئيسية</span>
+            </button>
+            <button class="nav-btn" id="btn-nav-orders" onclick="switchPage('orders')">
+                <i class="fa-solid fa-box-open"></i>
+                <span>سجل الطلبات</span>
+            </button>
+        </div>
+        
+        <div class="social-icons">
+            <a href="https://wa.me/963900000000" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="https://instagram.com/username" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://t.me/username" target="_blank"><i class="fa-brands fa-telegram"></i></a>
+            <a href="https://tiktok.com/@username" target="_blank"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+        <div class="copyright">&copy; 2026 جميع الحقوق محفوظة.</div>
     </footer>
 
-    <script src="script.js"></script>
+    <div class="modal-overlay" id="paymentModal" onclick="closeModal()">
+        <div class="custom-modal" onclick="event.stopPropagation()">
+            <div class="modal-img-placeholder"><i class="fa-regular fa-image fa-2x"></i> [ صورة توضيحية للشام كاش ]</div>
+            <div style="font-size: 0.9rem; margin-bottom: 18px; text-align: right; color: var(--text-main);">هنا يمكنك العثور على رقم عملية الدفع داخل تطبيق الشام كاش أو رسالة التحويل بنجاح.</div>
+            <button class="btn-gradient" style="margin: 0; padding: 12px;" onclick="closeModal()">فهمت</button>
+        </div>
+    </div>
+
+    <div class="toast-box" id="toastBox">
+        <i class="fa-solid fa-circle-check" style="color: var(--success-color);"></i>
+        <span id="toastMessage">تم الإجراء بنجاح</span>
+    </div>
+
+    <script>
+        const EXCHANGE_RATE = 143.75; 
+        const tg = window.Telegram ? window.Telegram.WebApp : null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+    // 1. التحقق الصارم من وجود بيانات تليجرام
+    if (!window.Telegram || !window.Telegram.WebApp || !window.Telegram.WebApp.initData || window.Telegram.WebApp.initData === "") {
+        // 💡 نصيحة للتطوير: عطل السطر القادم بوضع // قبل دالة displayBlockScreen() إذا كنت تريد فحص التصميم في متصفح خارجي
+        displayBlockScreen();
+        return; 
+    }
+
+    // 2. تشغيل ميزات التليجرام بأمان
+    try {
+        if (tg) {
+            tg.expand();
+            tg.ready();
+            
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                document.getElementById('user-display-name').innerText = tg.initDataUnsafe.user.first_name;
+                document.getElementById('user-tg-id').innerText = tg.initDataUnsafe.user.id;
+                fetchUserBalanceFromAPI(tg.initDataUnsafe.user.id);
+            } else {
+                setMockUser();
+            }
+        }
+    } catch (e) {
+        console.error("Telegram WebApp Error:", e);
+    }
+    
+    // 3. تشغيل دوال المتجر
+    fetchProductsFromAPI();
+    initBannerCarousel(); 
+});
+
+
+        let currentSlideIndex = 0;
+        let slides, dots;
+
+        function initBannerCarousel() {
+            slides = document.querySelectorAll('.banner-slide');
+            dots = document.querySelectorAll('.banner-dots .dot');
+            if (slides.length > 0) {
+                setInterval(nextSlide, 3000); 
+            }
+        }
+
+        function showSlide(index) {
+            if (!slides || slides.length === 0) return;
+            if (index >= slides.length) currentSlideIndex = 0;
+            if (index < 0) currentSlideIndex = slides.length - 1;
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            slides[currentSlideIndex].classList.add('active');
+            dots[currentSlideIndex].classList.add('active');
+        }
+
+        function nextSlide() {
+            currentSlideIndex++;
+            showSlide(currentSlideIndex);
+        }
+
+        function currentSlide(index) {
+            currentSlideIndex = index;
+            showSlide(currentSlideIndex);
+        }
+
+        function fetchUserBalanceFromAPI(telegramId) {
+            setTimeout(() => { document.getElementById('user-current-balance').innerText = "0.00"; }, 500);
+        }
+
+        // تم تنظيف المنتجات المؤقتة وترك الحاوية فارغة في انتظار دالة الربط بالـ API الحقيقي الخاص بك
+        function fetchProductsFromAPI() {
+            // هنا تضع كود الـ fetch لاستدعاء الـ API الفعلي وعرض الأقسام والمنتجات
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            const targetPage = document.getElementById(`page-${pageId}`);
+            if(targetPage) targetPage.classList.add('active');
+            
+            const navBtn = document.getElementById(`btn-nav-${pageId}`);
+            if (navBtn) navBtn.classList.add('active');
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        // تم إلغاء التوجيه التلقائي لبوابة الشحن عند الشراء؛ لتخصيص عملية معالجة الطلبات براحتك
+        function handlePurchase(name, price) {
+            triggerToast(`تم اختيار منتج: ${name} بقيمة $${price}`);
+            // هنا يمكنك فتح مودال تأكيد الشراء أو إرسال طلب الشراء للـ API مباشرة
+        }
+
+        function triggerToast(msg) {
+            const toast = document.getElementById('toastBox');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 2200);
+        }
+
+        function copyWalletText() {
+            const walletText = document.getElementById('walletText').innerText;
+            navigator.clipboard.writeText(walletText).then(() => { triggerToast("تم نسخ كود المحفظة بنجاح! ✓"); });
+        }
+
+        function toggleCurrencyView() {
+            const currency = document.getElementById('currencySelect').value;
+            const exchangeWrapper = document.getElementById('exchangeWrapper');
+            if (currency === 'USD') { 
+                exchangeWrapper.style.display = 'none'; 
+            } else { 
+                exchangeWrapper.style.display = 'block'; 
+                calculateExchange(); 
+            }
+        }
+
+        function calculateExchange() {
+            const amount = parseFloat(document.getElementById('amountInput').value) || 0;
+            const convertedAmount = document.getElementById('convertedAmount');
+            if (amount <= 0) { convertedAmount.innerText = "0.00 USD"; return; }
+            
+            const currency = document.getElementById('currencySelect').value;
+            if(currency === 'SYP') {
+                convertedAmount.innerText = (amount / EXCHANGE_RATE).toFixed(2) + " USD";
+            } else {
+                convertedAmount.innerText = amount.toFixed(2) + " USD";
+            }
+        }
+
+        function validateTxId(input) {
+            const dynamicTxGroup = document.getElementById('dynamicTxGroup');
+            if (input.value.length > 10) input.value = input.value.slice(0, 10);
+            const len = input.value.length;
+            
+            if (len === 0 || len >= 7) { 
+                dynamicTxGroup.style.display = 'none'; 
+            } else { 
+                dynamicTxGroup.style.display = 'block'; 
+            }
+        }
+
+        function openModal() { document.getElementById('paymentModal').classList.add('active'); }
+        function closeModal() { document.getElementById('paymentModal').classList.remove('active'); }
+
+        function processPayment() {
+            const txInput = document.getElementById('txIdInput').value;
+            if(txInput.length < 7 || txInput.length > 10) {
+                triggerToast("تأكد من كتابة رقم عملية صحيح أولاً");
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('btnSpinner');
+            const text = btn.querySelector('.btn-text');
+
+            btn.style.pointerEvents = 'none';
+            spinner.style.display = 'inline-block';
+            text.textContent = 'جاري المعالجة والتحقق...';
+
+            setTimeout(() => {
+                spinner.style.display = 'none';
+                text.textContent = 'تم الإرسال بنجاح! ✓';
+                btn.style.background = 'var(--success-color)';
+                triggerToast("تم رفع الإيصال بنجاح للسيرفر");
+                if (tg) {
+                    setTimeout(() => {
+                        tg.sendData(JSON.stringify({action: "deposit_verify", txId: txInput}));
+                        tg.close();
+                    }, 1200);
+                }
+            }, 1800);
+        }function displayBlockScreen() {
+    document.body.innerHTML = `
+        <div style="
+            background: linear-gradient(145deg, #050811, #0d1322);
+            color: #ff5252;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            font-family: sans-serif;
+            font-weight: bold;
+            direction: rtl;
+        ">
+            <i class="fa-solid fa-circle-exclamation" style="font-size: 3rem; margin-bottom: 15px;"></i>
+            <h2>عذراً، هذا التطبيق غير متاح هنا!</h2>
+            <p style="color: #8fa0bc; margin-top: 10px; font-weight: normal; font-size: 0.9rem; max-width: 300px; line-height: 1.5;">
+                لحماية بياناتك، يجب فتح هذا المتجر حصرياً من داخل بوت التليجرام الخاص بنا.
+            </p>
+        </div>
+    `;
+}
+
+function setMockUser() {
+    document.getElementById('user-display-name').innerText = "مستخدم تليجرام";
+    document.getElementById('user-tg-id').innerText = "جاري جلب الـ ID...";
+}
+
+    </script>
 </body>
 </html>
