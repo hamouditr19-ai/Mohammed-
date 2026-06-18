@@ -702,11 +702,36 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // تم إلغاء التوجيه التلقائي لبوابة الشحن عند الشراء؛ لتخصيص عملية معالجة الطلبات براحتك
-        function handlePurchase(name, price) {
-            triggerToast(`تم اختيار منتج: ${name} بقيمة $${price}`);
-            // هنا يمكنك فتح مودال تأكيد الشراء أو إرسال طلب الشراء للـ API مباشرة
+        async function handlePurchase(productName, productPrice) {
+    // 1. تأكيد الطلب
+    if (!confirm(`هل أنت متأكد من شراء ${productName} بسعر ${productPrice}$؟`)) return;
+
+    // 2. إرسال الطلب للسيرفر (مثال على كيفية الربط مع API الشراء)
+    try {
+        const response = await fetch("https://store.ahminix.com/client/api/orders", {
+            method: 'POST',
+            headers: {
+                'api-token': "KYQNQBMUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX",
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                product_name: productName,
+                price: productPrice
+            })
+        });
+
+        const result = await response.json();
+        
+        if (response.ok) {
+            triggerToast("تمت عملية الشراء بنجاح! ✓");
+        } else {
+            triggerToast("فشل الطلب: تأكد من رصيدك");
         }
+    } catch (error) {
+        triggerToast("حدث خطأ في الاتصال بالسيرفر");
+    }
+}
+
 
         function triggerToast(msg) {
             const toast = document.getElementById('toastBox');
@@ -814,6 +839,46 @@
 function setMockUser() {
     document.getElementById('user-display-name').innerText = "مستخدم تليجرام";
     document.getElementById('user-tg-id').innerText = "جاري جلب الـ ID...";
+}
+async function fetchProductsFromAPI() {
+    // الرابط الأساسي + المسار الخاص بالمنتجات (تأكد من الوثائق إذا كان المسار هو /products أو شيء آخر)
+    const apiEndpoint = "https://store.ahminix.com/client/api/products"; 
+    
+    // مفتاحك السري
+    const myToken = "KYQNQBMUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX"; 
+
+    const container = document.getElementById('products-api-target');
+    
+    try {
+        const response = await fetch(apiEndpoint, {
+            method: 'GET',
+            headers: {
+                'api-token': myToken, // هذا هو التعديل المطلوب حسب الوثائق
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) throw new Error('فشل في الاتصال بالسيرفر: ' + response.status);
+        
+        const data = await response.json();
+        
+        container.innerHTML = '<div class="products-grid"></div>';
+        const grid = container.querySelector('.products-grid');
+
+        data.forEach(product => {
+            grid.innerHTML += `
+                <div class="product-card">
+                    <div class="product-icon"><i class="fa-solid fa-gamepad"></i></div>
+                    <div class="product-title">${product.name}</div>
+                    <div class="product-price">${product.price} $</div>
+                    <button class="btn-gradient" onclick="handlePurchase('${product.name}', ${product.price})">شراء</button>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error("خطأ في الربط:", error);
+        container.innerHTML = '<div class="api-loader">حدث خطأ في تحميل البيانات.</div>';
+    }
 }
 
     </script>
