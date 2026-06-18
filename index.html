@@ -48,6 +48,44 @@
             }
         }
         loadProducts();
+        <script>
+    // 1. تعريف الدالة
+    async function fetchProductsFromAPI() {
+        const container = document.getElementById('products-api-target');
+        const targetUrl = "https://store.ahminix.com/client/api/products";
+        const myToken = "KYQNQBmUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX";
+        const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(targetUrl);
+
+        try {
+            const response = await fetch(proxyUrl, {
+                headers: { 'api-token': myToken }
+            });
+            const data = await response.json();
+            const products = JSON.parse(data.contents);
+
+            container.innerHTML = '<div class="products-grid"></div>';
+            const grid = container.querySelector('.products-grid');
+
+            products.forEach(product => {
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <div class="product-title">${product.name}</div>
+                        <div class="product-price">${product.price} $</div>
+                        <button class="btn-gradient" onclick="alert('شراء ${product.name}')">شراء</button>
+                    </div>
+                `;
+            });
+        } catch (error) {
+            container.innerHTML = '<div style="color:red; text-align:center;">خطأ في الاتصال: تأكد من تفعيل الـ VPN.</div>';
+        }
+    }
+
+    // 2. استدعاء الدالة فور تحميل الصفحة
+    window.onload = function() {
+        fetchProductsFromAPI();
+    };
+</script>
+
     </script>
 </body>
 </html>
