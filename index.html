@@ -3,37 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hamoudi Story</title>
+    <title>متجر Hamoudi Story</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background: #050811; color: white; font-family: sans-serif; text-align: center; padding: 20px; }
-        .product-card { background: #151e33; padding: 15px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #3ae4ff; }
-        .btn-gradient { background: #3ae4ff; color: #000; padding: 10px; border-radius: 8px; border: none; font-weight: bold; width: 100%; margin-top: 10px; }
-        .loader { color: #3ae4ff; font-size: 1.2rem; }
+        :root { --bg-gradient: linear-gradient(145deg, #050811 0%, #0d1322 100%); --primary-accent: #3ae4ff; }
+        body { background: var(--bg-gradient); color: white; font-family: sans-serif; margin: 0; padding: 20px; min-height: 100vh; }
+        .product-card { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: center; }
+        .btn-gradient { background: var(--primary-accent); border: none; padding: 10px 20px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .api-loader { text-align: center; padding: 40px; color: var(--primary-accent); }
     </style>
 </head>
 <body>
 
     <h2>منتجات Hamoudi Story</h2>
-    <div id="products-target">
-        <div class="loader"><i class="fa-solid fa-spinner fa-spin"></i> جاري تحميل البيانات...</div>
+    <div id="products-api-target">
+        <div class="api-loader"><i class="fa-solid fa-spinner fa-spin"></i> جاري الاتصال بالسيرفر...</div>
     </div>
 
     <script>
-        async function loadProducts() {
-            const container = document.getElementById('products-target');
-            // رابط الوسيط لتجاوز الحظر
-            const proxy = "https://api.allorigins.win/get?url=";
-            const target = encodeURIComponent("https://store.ahminix.com/client/api/products");
+        // دالة جلب المنتجات مع وسيط لتجاوز القيود
+        async function fetchProductsFromAPI() {
+            const container = document.getElementById('products-api-target');
+            const targetUrl = "https://store.ahminix.com/client/api/products";
+            const myToken = "KYQNQBmUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX";
             
-            try {
-                const response = await fetch(proxy + target, {
-                    headers: { 'api-token': "KYQNQBmUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX" }
-                });
-                const result = await response.json();
-                const products = JSON.parse(result.contents);
+            // نستخدم وسيط لتجاوز مشاكل الحظر الجغرافي وقيود المتصفح
+            const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(targetUrl);
 
-                container.innerHTML = "";
+            try {
+                const response = await fetch(proxyUrl, {
+                    headers: { 'api-token': myToken }
+                });
+
+                const data = await response.json();
+                const products = JSON.parse(data.contents);
+
+                container.innerHTML = '';
                 products.forEach(p => {
                     container.innerHTML += `
                         <div class="product-card">
@@ -43,49 +49,13 @@
                         </div>
                     `;
                 });
-            } catch (err) {
-                container.innerHTML = "خطأ في الاتصال: تأكد من تفعيل الـ VPN.";
+            } catch (error) {
+                container.innerHTML = '<div class="api-loader" style="color:red;">خطأ: تأكد من تفعيل الـ VPN وتجربة الرابط من متصفح كروم.</div>';
             }
         }
-        loadProducts();
-        <script>
-    // 1. تعريف الدالة
-    async function fetchProductsFromAPI() {
-        const container = document.getElementById('products-api-target');
-        const targetUrl = "https://store.ahminix.com/client/api/products";
-        const myToken = "KYQNQBmUT8mAvaTIZPXGalM-AXEeNwHASz8OVj6DBMiuJzFqxZKdVy9oaeeSOCaX";
-        const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(targetUrl);
 
-        try {
-            const response = await fetch(proxyUrl, {
-                headers: { 'api-token': myToken }
-            });
-            const data = await response.json();
-            const products = JSON.parse(data.contents);
-
-            container.innerHTML = '<div class="products-grid"></div>';
-            const grid = container.querySelector('.products-grid');
-
-            products.forEach(product => {
-                grid.innerHTML += `
-                    <div class="product-card">
-                        <div class="product-title">${product.name}</div>
-                        <div class="product-price">${product.price} $</div>
-                        <button class="btn-gradient" onclick="alert('شراء ${product.name}')">شراء</button>
-                    </div>
-                `;
-            });
-        } catch (error) {
-            container.innerHTML = '<div style="color:red; text-align:center;">خطأ في الاتصال: تأكد من تفعيل الـ VPN.</div>';
-        }
-    }
-
-    // 2. استدعاء الدالة فور تحميل الصفحة
-    window.onload = function() {
-        fetchProductsFromAPI();
-    };
-</script>
-
+        // تشغيل عند التحميل
+        document.addEventListener("DOMContentLoaded", fetchProductsFromAPI);
     </script>
 </body>
 </html>
