@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>حمودي ستوري - Hamoudi Story</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* إعدادات الخطوط والألوان الأساسية (Dark Theme) */
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(20, 27, 45, 0.7);
+            --neon-blue: #00e5ff;
+            --text-main: #ffffff;
+            --text-muted: #8a99ad;
+            --border-color: rgba(0, 229, 255, 0.15);
+            --red-color: #ff3344;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: 80px; /* مساحة للفوتر السفلي */
+        }
+
+        /* الهيدر العلوي */
+        header {
+            background: linear-gradient(180deg, rgba(0, 229, 255, 0.1) 0%, rgba(11, 15, 25, 0) 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-main);
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        /* قسم حساب المستخدم والمحفظة */
+        .profile-wallet-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            margin: 15px;
+            padding: 15px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-id-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .user-id-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--neon-blue);
+        }
+
+        .wallet-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .balance-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .balance-label {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .balance-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #22c55e; /* لون أخضر مالي */
+        }
+
+        .charge-btn {
+            background: linear-gradient(135deg, var(--neon-blue) 0%, #00a8cc 100%);
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: transform 0.1s ease;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        .charge-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* قسم البنرات الإعلانية (Slider) */
+        .slider-container {
+            margin: 5px 15px 15px 15px;
+            overflow: hidden;
+            border-radius: 16px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            height: 140px;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            width: 400%;
+            height: 100%;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            width: 25%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        /* تراكب داكن لتوضيح النصوص فوق البنرات */
+        .slide::before {
+            content: '';
+            position: absolute;
+            top:0; left:0; right:0; bottom:0;
+            background: linear-gradient(90deg, rgba(11,15,25,0.9) 0%, rgba(11,15,25,0.5) 100%);
+            z-index: 1;
+        }
+
+        .slide-content {
+            position: relative;
+            z-index: 2;
+            color: var(--text-main);
+        }
+
+        .slide-content h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--neon-blue);
+        }
+
+        .slide-content p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* خلفيات مجهزة للبنرات الأربعة لعروض 2026 */
+        .slide:nth-child(1) { background-color: #1e1b4b; }
+        .slide:nth-child(2) { background-color: #111827; }
+        .slide:nth-child(3) { background-color: #06283d; }
+        .slide:nth-child(4) { background-color: #0f172a; }
+
+        /* حاوية المنتجات الديناميكية (فارغة ومجهزة للـ API) */
+        .dynamic-content-area {
+            flex: 1;
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            min-height: 150px;
+        }
+
+        .dynamic-content-area i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: rgba(0, 229, 255, 0.2);
+        }
+
+        /* النافذة المنبثقة لشحن شام كاش (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 7, 12, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* تفتح من الأسفل بشكل مريح للهواتف */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #111622;
+            width: 100%;
+            max-width: 500px;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            border-top: 2px solid var(--neon-blue);
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .exchange-rate-box {
+            background: rgba(0, 229, 255, 0.05);
+            border: 1px dashed var(--neon-blue);
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 13px;
+            margin-bottom: 15px;
+            color: #e0e0e0;
+        }
+
+        /* الصور التوضيحية والباركود */
+        .modal-images-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .img-placeholder-box {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            height: 110px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .img-placeholder-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+        }
+
+        .img-placeholder-box span {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 5px;
+            z-index: 0;
+        }
+
+        /* حقل رقم الحساب والنسخ */
+        .account-number-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .account-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .account-label {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .account-id {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: 1px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--neon-blue);
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:active {
+            background: rgba(0, 229, 255, 0.2);
+        }
+
+        /* زر الإغلاق */
+        .close-modal-btn {
+            width: 100%;
+            background: var(--red-color);
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 51, 68, 0.2);
+            transition: transform 0.1s;
+        }
+
+        .close-modal-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* الفوتر السفلي الثابت */
+        footer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(11, 15, 25, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 900;
+        }
+
+        .footer-support-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--neon-blue);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(0, 229, 255, 0.05);
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .copyright-text {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>حمودي ستوري</h1>
+    </header>
+
+    <section class="profile-wallet-card">
+        <div class="user-info">
+            <span class="user-id-label">معرف تليجرام</span>
+            <span class="user-id-value" id="telegram-id">جاري الجلب...</span>
+        </div>
+        <div class="wallet-info">
+            <div class="balance-container">
+                <span class="balance-label">الرصيد الحالي</span>
+                <span class="balance-value" id="user-balance">$0.00</span>
+            </div>
+            <button class="charge-btn" id="open-charge-modal">
+                <i class="fa-solid fa-wallet"></i>
+                شحن
+            </button>
+        </div>
+    </section>
+
+    <section class="slider-container">
+        <div class="slider-wrapper" id="slider-wrapper">
+            <div class="slide">
+                <div class="slide-content">
+                    <h3>عروض حصرية 2026</h3>
+                    <p>استمتع بأقوى الخصومات على شحن الألعاب الآن</p>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="slide-content">
+                    <h3>خدمات السوشيال ميديا</h3>
+                    <p>دعم وتطوير حساباتك بأسعار تنافسية وجودة عالية</p>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="slide-content">
+                    <h3>سرعة وفوريّة في التنفيذ</h3>
+                    <p>شحن آلي ومباشر بالكامل دون انتظار</p>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="slide-content">
+                    <h3>دعم فني متواصل</h3>
+                    <p>فريقنا متواجد لخدمتكم وحل استفساراتكم على مدار الساعة</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="dynamic-content-area" id="products-container">
+        <i class="fa-solid fa-boxes-radial"></i>
+        <p>يتم الآن جلب الأقسام والخدمات ديناميكياً عبر الـ API...</p>
+    </main>
+
+    <div class="modal-overlay" id="charge-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>بوابة شحن الرصيد (شام كاش)</h2>
+            </div>
+
+            <div class="exchange-rate-box">
+                <i class="fa-solid fa-circle-info"></i> 
+                سعر الصرف المعتمد حالياً: <strong>1$ = 15,000 ل.س</strong> عبر شام كاش.
+            </div>
+
+            <div class="modal-images-container">
+                <div class="img-placeholder-box">
+                    <img src="" id="promo-image" alt="">
+                    <span>[صورة توضيحية للخطوات]</span>
+                </div>
+                <div class="img-placeholder-box">
+                    <img src="" id="qr-code-image" alt="">
+                    <span>[صورة باركود QR Code]</span>
+                </div>
+            </div>
+
+            <div class="account-number-box">
+                <div class="account-details">
+                    <span class="account-label">رقم حساب استقبال شام كاش</span>
+                    <span class="account-id" id="account-number">1234567</span>
+                </div>
+                <button class="copy-btn" id="copy-account-btn" title="نسخ الرقم">
+                    <i class="fa-regular fa-copy"></i>
+                </button>
+            </div>
+
+            <button class="close-modal-btn" id="close-charge-modal">إغلاق النافذة والعودة</button>
+        </div>
+    </div>
+
+    <footer>
+        <a href="https://t.me/YourSupportUsername" class="footer-support-btn" target="_blank">
+            <i class="fa-brands fa-telegram"></i>
+            التواصل مع الدعم الفني
+        </a>
+        <span class="copyright-text">جميع الحقوق محفوظة © حمودي ستوري 2026</span>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
