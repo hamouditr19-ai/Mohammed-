@@ -15,39 +15,73 @@ const CONFIG = {
     },
 };
 
+const CORS_PROXIES = [
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
+    'https://api.codetabs.com/v1/proxy?quest=',
+];
+
 const STATE = {
     userId: null,
     balance: 0,
     sliderIndex: 0,
     sliderTimer: null,
-    banners: [],
-    categories: [],
+    activeCategory: 'all',
     products: [],
-    activeCategory: 0,
-    orderInProgress: false,
+    categories: [],
+    workingProxy: 0,
 };
 
-// ==================== API ====================
-async function apiCall(endpoint, options = {}) {
+// منتجات افتراضية لو فشل الاتصال
+const DEMO_PRODUCTS = [
+    { id: 1, name: 'UC 60 PUBG', price: 0.104, category: 'pubg' },
+    { id: 2, name: 'UC 300 PUBG', price: 0.520, category: 'pubg' },
+    { id: 3, name: 'UC 600 PUBG', price: 1.040, category: 'pubg' },
+    { id: 4, name: 'شحن Free Fire 100', price: 0.150, category: 'freefire' },
+    { id: 5, name: 'شحن Free Fire 500', price: 0.750, category: 'freefire' },
+    { id: 6, name: 'بطاقة Google Play 10$', price: 10.000, category: 'google' },
+    { id: 7, name: 'بطاقة Google Play 25$', price: 25.000, category: 'google' },
+    { id: 8, name: 'خدمة توصيل سريعة', price: 2.000, category: 'services' },
+];
+
+const DEMO_CATEGORIES = [
+    { id: 'all', name: 'الكل' },
+    { id: 'pubg', name: 'PUBG' },
+    { id: 'freefire', name: 'Free Fire' },
+    { id: 'google', name: 'بطاقات قوقل' },
+    { id: 'services', name: 'خدمات' },
+];
+
+// ==================== API مع Proxy ====================
+async function tryFetchWithProxy(endpoint, options = {}, proxyIndex = 0) {
+    if (proxyIndex >= CORS_PROXIES.length) throw new Error('كل البروكسيات فشلت');
+    
     const apiUrl = CONFIG.apiBaseUrl + endpoint;
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(apiUrl);
+    const proxyUrl = CORS_PROXIES[proxyIndex] + encodeURIComponent(apiUrl);
     
     try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        
         const res = await fetch(proxyUrl, {
-            method: options.method || 'GET',
+            ...options,
+            signal: controller.signal,
             headers: {
                 'api-token': CONFIG.apiToken,
                 'Content-Type': 'application/json',
                 ...options.headers,
             },
-            body: options.body,
         });
+        
+        clearTimeout(timeout);
+        
         if (!res.ok) throw new Error('HTTP ' + res.status);
-        return await res.json();
+        const data = await res.json();
+        STATE.workingProxy = proxyIndex;
+        return data;
     } catch (e) {
-        console.error('API Error:', e);
-        showToast('⚠️ تعذر الاتصال بالسيرفر');
-        throw e;
+        console.warn(`Proxy ${proxyIndex + 1} فشل:`, e.message);
+        return tryFetchWithProxy(endpoint, options, proxyIndex + 1);
     }
 }
 
@@ -56,26 +90,28 @@ function initTelegram() {
     const tg = window.Telegram?.WebApp;
     if (!tg) {
         STATE.userId = '123456789';
-        updateUserUI();
-        return;
-    }
-    tg.ready();
-    tg.expand();
-    if (tg.initDataUnsafe?.user) {
-        STATE.userId = tg.initDataUnsafe.user.id;
-        loadBalance();
+        STATE.balance = 15.75;
+    } else {
+        tg.ready();
+        tg.expand();
+        if (tg.initDataUnsafe?.user) {
+            STATE.userId = tg.initDataUnsafe.user.id;
+            loadBalanceFromAPI();
+        }
     }
     updateUserUI();
 }
 
-async function loadBalance() {
+async function loadBalanceFromAPI() {
     try {
-        const data = await apiCall('/profile');
-        if (data.status === 'OK') {
+        const data = await tryFetchWithProxy('/profile');
+        if (data && data.status === 'OK') {
             STATE.balance = parseFloat(data.balance) || 0;
             updateUserUI();
         }
-    } catch (e) {}
+    } catch (e) {
+        console.log('تعذر جلب الرصيد من API');
+    }
 }
 
 function updateUserUI() {
@@ -111,15 +147,26 @@ document.addEventListener('click', function(e) {
 function copyAddress() {
     const addr = CONFIG.shamCashAddress;
     const btn = document.getElementById('btnCopyAddress');
-    navigator.clipboard?.writeText(addr).then(() => {
-        btn.classList.add('copied');
-        btn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(addr).then(() => {
+            btn.classList.add('copied');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
+            showToast('✅ تم النسخ');
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<i class="fa-solid fa-copy"></i> نسخ';
+            }, 2000);
+        });
+    } else {
+        const ta = document.createElement('textarea');
+        ta.value = addr;
+        ta.style.cssText = 'position:fixed;opacity:0;';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
         showToast('✅ تم النسخ');
-        setTimeout(() => {
-            btn.classList.remove('copied');
-            btn.innerHTML = '<i class="fa-solid fa-copy"></i> نسخ';
-        }, 2000);
-    }).catch(() => showToast('⚠️ فشل النسخ'));
+    }
 }
 
 // ==================== العملة ====================
@@ -164,26 +211,26 @@ function submitPayment() {
 
 // ==================== البنرات ====================
 function initBanners() {
-    STATE.banners = [
-        { badge: '🔥 عرض', title: 'PUBG', subtitle: 'شحن فوري', link: 7, bg: 0 },
-        { badge: '⚡ خدمة', title: 'شام كاش', subtitle: 'شحن سريع', link: 'shamcash', bg: 1 },
-        { badge: '💎 عرض', title: 'خصم 15%', subtitle: 'لفترة محدودة', link: null, bg: 2 },
-        { badge: '🎁 جديد', title: 'عروض 2026', subtitle: 'اكتشف الآن', link: null, bg: 3 },
+    const banners = [
+        { badge: '🔥 عرض', title: 'PUBG', subtitle: 'شحن فوري', link: 'pubg' },
+        { badge: '⚡ خدمة', title: 'Free Fire', subtitle: 'توصيل سريع', link: 'freefire' },
+        { badge: '🏦 محفظة', title: 'شام كاش', subtitle: 'شحن رصيد', link: 'shamcash' },
+        { badge: '💎 عرض', title: 'بطاقات قوقل', subtitle: 'خصم 15%', link: 'google' },
     ];
-    renderBanners();
+    renderBanners(banners);
     startSlider();
 }
 
-function renderBanners() {
+function renderBanners(banners) {
     const slider = document.getElementById('promoSlider');
     const dots = document.getElementById('promoDots');
     if (!slider || !dots) return;
     slider.innerHTML = dots.innerHTML = '';
-    STATE.banners.forEach((b, i) => {
+    banners.forEach((b, i) => {
         const slide = document.createElement('div');
-        slide.className = 'promo-slide' + (!b.link ? ' no-link' : '');
+        slide.className = 'promo-slide';
         slide.innerHTML = `<div class="promo-glow"></div><div class="promo-content"><span class="promo-badge">${b.badge}</span><h3 class="promo-title">${b.title}</h3><p class="promo-subtitle">${b.subtitle}</p></div>`;
-        slide.addEventListener('click', e => { addRipple(e, slide); if (b.link) handleBannerClick(b.link); });
+        slide.addEventListener('click', e => { addRipple(e, slide); handleBannerClick(b.link); });
         slider.appendChild(slide);
         const dot = document.createElement('span');
         dot.className = 'promo-dot' + (i === 0 ? ' active' : '');
@@ -202,11 +249,13 @@ function addRipple(e, el) {
 }
 
 function handleBannerClick(link) {
-    link === 'shamcash' ? openShamCashForm() : typeof link === 'number' ? filterByCategory(link) : showToast('📂 قيد التجهيز');
+    if (link === 'shamcash') openShamCashForm();
+    else if (link) filterByCategory(link);
+    else showToast('📂 قيد التجهيز');
 }
 
 function goToSlide(i) {
-    const t = STATE.banners.length;
+    const t = 4;
     if (i < 0) i = t - 1;
     if (i >= t) i = 0;
     STATE.sliderIndex = i;
@@ -222,22 +271,23 @@ function startSlider() {
 // ==================== الأقسام والمنتجات ====================
 async function loadCategories() {
     try {
-        const data = await apiCall('/content/0');
-        if (data?.status === 'OK' && data.categories) {
-            STATE.categories = [{ id: 0, name: 'الكل' }, ...data.categories];
+        const data = await tryFetchWithProxy('/content/0');
+        if (data && data.status === 'OK' && data.categories) {
+            STATE.categories = [{ id: 'all', name: 'الكل' }, ...data.categories.map(c => ({ id: c.id.toString(), name: c.name }))];
             renderCategories();
+            return;
         }
-    } catch (e) {
-        STATE.categories = [{ id: 0, name: 'الكل' }];
-        renderCategories();
-    }
+    } catch (e) {}
+    
+    STATE.categories = DEMO_CATEGORIES;
+    renderCategories();
 }
 
 function renderCategories() {
     const c = document.getElementById('categoriesContainer');
     if (!c) return;
     c.innerHTML = STATE.categories.map(cat =>
-        `<span class="category-chip${STATE.activeCategory===cat.id?' active':''}" onclick="filterByCategory(${cat.id})">${cat.name}</span>`
+        `<span class="category-chip${STATE.activeCategory===cat.id?' active':''}" onclick="filterByCategory('${cat.id}')">${cat.name}</span>`
     ).join('');
 }
 
@@ -247,51 +297,64 @@ async function filterByCategory(id) {
     await loadProducts(id);
 }
 
-async function loadProducts(catId = 0) {
+async function loadProducts(catId = 'all') {
     const c = document.getElementById('productsContainer');
     if (!c) return;
     c.innerHTML = '<div class="state-message"><i class="fa-solid fa-spinner fa-spin"></i>جاري التحميل...</div>';
+    
     try {
-        const data = await apiCall(catId > 0 ? `/content/${catId}` : '/products');
-        STATE.products = catId > 0 ? (data?.products || []) : (Array.isArray(data) ? data : (data?.products || []));
-        renderProducts();
-    } catch (e) {
-        c.innerHTML = '<div class="state-message"><i class="fa-solid fa-triangle-exclamation"></i>تعذر تحميل المنتجات</div>';
-    }
+        if (catId === 'all') {
+            const data = await tryFetchWithProxy('/products');
+            if (Array.isArray(data)) {
+                STATE.products = data;
+                renderProducts(STATE.products);
+                return;
+            } else if (data && data.products) {
+                STATE.products = data.products;
+                renderProducts(STATE.products);
+                return;
+            }
+        } else {
+            const data = await tryFetchWithProxy(`/content/${catId}`);
+            if (data && data.status === 'OK' && data.products) {
+                STATE.products = data.products;
+                renderProducts(STATE.products);
+                return;
+            }
+        }
+    } catch (e) {}
+    
+    // رجوع للمنتجات التجريبية
+    const filtered = catId === 'all' ? DEMO_PRODUCTS : DEMO_PRODUCTS.filter(p => p.category === catId);
+    renderProducts(filtered);
 }
 
-function renderProducts() {
+function renderProducts(products) {
     const c = document.getElementById('productsContainer');
-    if (!STATE.products.length) {
+    if (!c) return;
+    if (!products || products.length === 0) {
         c.innerHTML = '<div class="state-message"><i class="fa-solid fa-box-open"></i>لا توجد منتجات</div>';
         return;
     }
-    c.innerHTML = '<div class="products-grid">' + STATE.products.map(p =>
-        `<div class="product-card" onclick="createOrder(${p.id},'${p.name||''}')">
+    c.innerHTML = '<div class="products-grid">' + products.map(p =>
+        `<div class="product-card">
             <div class="product-img"><i class="fa-solid fa-box"></i></div>
             <div class="product-info"><div class="product-name">${p.name||'منتج'}</div><div class="product-price">$${parseFloat(p.price||0).toFixed(3)}</div></div>
         </div>`
     ).join('') + '</div>';
 }
 
-async function createOrder(id, name) {
-    if (STATE.orderInProgress) return;
-    STATE.orderInProgress = true;
-    showToast('🔄 جاري الطلب...');
-    try {
-        const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16); });
-        const data = await apiCall(`/newOrder/${id}/params?qty=1&order_uuid=${uuid}`, { method: 'POST' });
-        showToast(data?.status === 'OK' ? '✅ تم الطلب!' : '⚠️ فشل');
-        if (data?.status === 'OK') loadBalance();
-    } catch (e) { showToast('⚠️ خطأ'); }
-    STATE.orderInProgress = false;
-}
-
 // ==================== مساعدات ====================
 function setupSocialLinks() {
+    const links = {
+        instagram: CONFIG.socialLinks.instagram,
+        whatsapp: CONFIG.socialLinks.whatsapp,
+        telegram: CONFIG.socialLinks.telegram,
+        tiktok: CONFIG.socialLinks.tiktok,
+    };
     ['instagram','whatsapp','telegram','tiktok'].forEach(p => {
         const el = document.querySelector(`.social-icon.${p}`);
-        if (el) el.href = CONFIG.socialLinks[p];
+        if (el) el.href = links[p];
     });
 }
 
@@ -328,6 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initTelegram();
     initBanners();
     loadCategories();
-    loadProducts(0);
+    loadProducts('all');
     setupSocialLinks();
 });
